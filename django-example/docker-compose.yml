@@ -1,0 +1,50 @@
+version: '2'
+
+services:
+  db:
+    image: postgres:alpine
+    container_name: postgres_db
+    networks:
+    - internal
+    labels:
+    - traefik.enable=false
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    volumes:
+    - ./src:/usr/share/nginx/html/
+    networks:
+    - internal
+    - traefik
+    labels:
+    - traefik.backend=nginx
+    - traefik.docker.network:traefik
+    - traefik.enable=true
+    - traefik.frontend.rule=Host:web.example.com
+    - traefik.port=80
+    depends_on:
+    - web
+    restart: always
+
+  web:
+    build: ./src
+    command: sh /code/run.sh
+    container_name: web
+    depends_on:
+    - db
+    labels:
+    - traefik.enable=false
+    networks:
+    - internal
+    restart: always
+    volumes:
+    - ./src:/code
+networks:
+  internal:
+    external: false
+  traefik:
+    external:
+      name: traefik
+
