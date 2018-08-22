@@ -1,1 +1,1 @@
-FROM mastertos/django
+FROM mastertos/django:latest
