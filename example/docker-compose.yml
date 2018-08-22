@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+  example:
+    image: tutum/hello-world
+    networks:
+    - internal
+    - traefik
+    labels:
+    - traefik.backend=example
+    - traefik.docker.network=traefik
+    - traefik.frontend.entryPoints=http,https
+    - traefik.frontend.rule=Host:hello.example.com
+    - traefik.port=80
+
+networks:
+  internal:
+    external: false
+  traefik:
+    external:
+      name: traefik
