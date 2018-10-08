@@ -1,9 +1,9 @@
 version: '2'
 
 services:
-  db:
+  <project-name>-db:
     image: postgres:alpine
-    container_name: postgres_db
+    container_name: <project-name>-db
     volumes:
     - ./data:/var/lib/postgresql/data
     networks:
@@ -12,41 +12,47 @@ services:
     - traefik.enable=false
     restart: always
 
-  nginx:
+  <project-name>-nginx:
     image: nginx:alpine
-    container_name: nginx
+    container_name: <project-name>-nginx
     volumes:
-    - ./src:/usr/share/nginx/html/
+    - ./src/static:/usr/share/nginx/html/static
+    - ./src/media:/usr/share/nginx/html/media
+    - ./src/files:/usr/share/nginx/html/files
     networks:
     - internal
-    - traefik
+    - <network-name>
     labels:
-    - traefik.backend=nginx
-    - traefik.docker.network:traefik
+    - traefik.backend=<project-name>-nginx
+    - traefik.docker.network=<network-name>
     - traefik.enable=true
-    - traefik.frontend.rule=Host:web.example.com
+    - traefik.frontend.rule=Host:web.example.com;PathPrefix:/static/,/media/,/files/
     - traefik.port=80
     depends_on:
-    - web
+    - <project-name>-web
     restart: always
 
-  web:
+  <project-name>-web:
     build: ./src
     command: sh /code/run.sh
-    container_name: web
+    container_name: <project-name>-web
     depends_on:
-    - db
+    - <project-name>-db
     labels:
-    - traefik.enable=false
+    - traefik.backend=<project-name>-web
+    - traefik.docker.network=<network-name>
+    - traefik.frontend.rule=Host:web.example.com;PathPrefix:/
+    - traefik.port=8000
     networks:
     - internal
+    - <network-name>
     restart: always
     volumes:
     - ./src:/code
+
 networks:
   internal:
     external: false
-  traefik:
-    external:
-      name: traefik
+  <network-name>:
+    external: true
 
